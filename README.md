@@ -1,16 +1,18 @@
-**A pipeline for BCR repertoire libraries from the form of - Illumina MiSeq 2x250 BCR mRNA. that were produced in the same fashion as those in [Greiff et al. 2014](https://bmcimmunol.biomedcentral.com/articles/10.1186/s12865-014-0040-5)**
+
+**A pipeline for BCR repertoire libraries from the form of - UMI Barcoded Illumina MiSeq 325+275 paired-end 5’RACE BCR mRNA. that were produced in the same fashion as those in [VanderHeiden et al. 2017](https://journals.aai.org/jimmunol/article/198/4/1460/109668/Dysregulation-of-B-Cell-Repertoire-Formation-in)**
 
 <u>Sequence library:</u>
 
-The sequences were amplified using CPrimers and VPrimers. They were sequences with Illumins MiSeq 2x250. 
+The sequences were amplified using  1. AbSeq R1 Human IG Primers.fasta , 2. AbSeq R2 TS.fasta 3. AbSeq Human IG InternalCRegion.fasta.
+They were sequences with Illumins MiSeq 325+275. 
 
-Each 250 base-pair read was sequenced from one end of the target cDNA, so that the two reads together cover the entire variable region of the Ig heavy chain. The V(D)J reading frame proceeds from the start of read 2 to the start of read 1. Read 1 is in the opposite orientation (reverse complement), and contains the C-region primer sequence. Both reads begin with a random sequences of 4 nucleotides.
+Each read was sequenced from one end of the target cDNA so that the two reads together cover the entire variable region of the Ig heavy chain. Sequencing was performed using an uneven number of cycles for read 1 and read 2 using a 2x300 kit. The V(D)J reading frame proceeds from the start of read 2 to the start of read 1. Read 1 is in the opposite orientation (reverse complement), contains a partial C-region, and is 325 nucleotides in length. Read 2 contains the 5’RACE template switch site with a 17 nucleotide UMI barcode preceding it, and is 275 nucleotides in length.
 
 
 <u>Input files:</u>
 
-1. The read can downloaded from the EBI European Nucleotide Archive under accession ID: ERP003950 or from SRA accession: SRR1383456
-2. The primers sequences available online at the table below.
+1. The read can downloaded from the NCBI Sequence Read Archive under BioProject accession ID: PRJNA248475 or downloaded first 25,000 sequences of sample HD09_N_AB8KB (accession: SRR4026043) using fastq-dump from the SRA Toolkit
+2. The primers sequences available at the table below.
 
 <u>Output files:</u>
 
@@ -20,53 +22,71 @@ Each 250 base-pair read was sequenced from one end of the target cDNA, so that t
 
 <u>Sequence processing:</u>
 
-* Paired-end assembly
+* Quality control, UMI annotation and primer masking
 
-	1. AssemblePairs align
-* Quality control and primer annotation
-
-	2. FilterSeq quality
+	1. FilterSeq quality
 	2. MaskPrimer score
+* Generation of UMI consensus sequences
+
+	3. PairSeq
+	4. BuildConsensus
+* Paired-end assembly of UMI consensus sequences
+
+	5. PairSeq	
+	6. AssemblePairs sequential 
 * Deduplication and filtering
 
-	3. CollapseSeq
-	4. SplitSeq group
+	7. MaskPrimer align
+	8. ParseHeaders collapse
+	9. CollapseSeq
+	10. SplitSeq group
 
 
 
 
-
-**CPrimers**
-
-| Header     | Primer |
-| ----------- | ----------- |
-| IGHG   | CARKGGATRRRCHGATGGGG       |
-
-
-
-
-**VPrimers**
+**AbSeq R1 Human IG Primers**
 
 | Header     | Primer |
 | ----------- | ----------- |
-| VH-FW1   | GAKGTRMAGCTTCAGGAGTC    |
-| VH-FW2   | GAGGTBCAGCTBCAGCAGTC    |
-| VH-FW3   | CAGGTGCAGCTGAAGSASTC    |
-| VH-FW4   | GAGGTCCARCTGCAACARTC    |
-| VH-FW5   | CAGGTYCAGCTBCAGCARTC    |
-| VH-FW6   | CAGGTYCARCTGCAGCAGTC    |
-| VH-FW7   | CAGGTCCACGTGAAGCAGTC    |
-| VH-FW8   | GAGGTGAASSTGGTGGAATC      |
-| VH-FW9   | GAVGTGAWGYTGGTGGAGTC      |
-| VH-FW10  | GAGGTGCAGSKGGTGGAGTC      |
-| VH-FW11   | GAKGTGCAMCTGGTGGAGTC      |
-| VH-FW12   | GAGGTGAAGCTGATGGARTC      |
-| VH-FW13   | GAGGTGCARCTTGTTGAGTC      |
-| VH-FW14   | GARGTRAAGCTTCTCGAGTC      |
-| VH-FW15   | GAAGTGAARSTTGAGGAGTC      |
-| VH-FW16   | CAGGTTACTCTRAAAGWGTSTG    |
-| VH-FW17   | CAGGTCCAACTVCAGCARCC      |
-| VH-FW18   | GATGTGAACTTGGAAGTGTC      |
-| VH-FW19	| GAGGTGAAGGTCATCGAGTC		|
+| Human-IGHM   |	GAATTCTCACAGGAGACGAGG      |
+| Human-IGHD   |	TGTCTGCACCCTGATATGATGG     |
+| Human-IGHA   |	GGGTGCTGYMGAGGCTCA  	   |
+| Human-IGHE   |	TTGCAGCAGCGGGTCAAGG 	   |
+| Human-IGHG   |	CCAGGGGGAAGACSGATG  	   |
+| Human-IGK    |	GACAGATGGTGCAGCCACAG       |
+| Human-IGL    |	AGGGYGGGAACAGAGTGAC        |
+
+
+
+**AbSeq R2 TS**
+
+| Header     | Primer |
+| ----------- | ----------- |
+| TS-shift0   |	TACGGG      |
+| TS-shift1   |	ATACGGG     |
+| TS-shift2   |	TCTACGGG    |
+| TS-shift3   |	CGATACGGG   |
+| TS-shift4   |	GATCTACGGG  |
+
+
+
+
+
+**AbSeq Human IG InternalCRegion**
+
+| Header     | Primer |
+| ----------- | ----------- |
+| Human-IGHA      |	GGCTGGTCGGGGATGC       |
+| Human-IGHD      |	GAGCCTTGGTGGGTGC       |
+| Human-IGHE      |	GGCTCTGTGTGGAGGC  	   |
+| Human-IGHG      |	GGCCCTTGGTGGARGC 	   |
+| Human-IGHM      |	GGGCGGATGCACTCCC  	   |
+| Human-IGKC      |	TTCGTTTRATHTCCAS       |
+| Human-IGLC-1    |	TGGGGTTGGCCTTGGG       |
+| Human-IGLC-2    |	AGGGGGCAGCCTTGGG  	   |
+| Human-IGLC-3    |	YRGCCTTGGGCTGACC       |
+| Human-IGLC-4    |	GCTGCCAAACATGTGC       |
+
+
 
 
