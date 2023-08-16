@@ -1,92 +1,79 @@
 
-**A pipeline for BCR repertoire libraries from the form of - UMI Barcoded Illumina MiSeq 325+275 paired-end 5’RACE BCR mRNA. that were produced in the same fashion as those in [VanderHeiden et al. 2017](https://journals.aai.org/jimmunol/article/198/4/1460/109668/Dysregulation-of-B-Cell-Repertoire-Formation-in)**
+A pipeline for BCR repertoire libraries from the form of - UMI Barcoded Illumina MiSeq 325+275 paired-end 5’RACE BCR mRNA. that were produced in the same fashion as those in [VanderHeiden et al. 2017](https://journals.aai.org/jimmunol/article/198/4/1460/109668/Dysregulation-of-B-Cell-Repertoire-Formation-in)
 
-<u>Sequence library:</u>
+Library preperation and sequencing method:
 
-The sequences were amplified using  1. AbSeq R1 Human IG Primers.fasta , 2. AbSeq R2 TS.fasta 3. AbSeq Human IG InternalCRegion.fasta.
-They were sequences with Illumins MiSeq 325+275. 
-
-Each read was sequenced from one end of the target cDNA so that the two reads together cover the entire variable region of the Ig heavy chain. Sequencing was performed using an uneven number of cycles for read 1 and read 2 using a 2x300 kit. The V(D)J reading frame proceeds from the start of read 2 to the start of read 1. Read 1 is in the opposite orientation (reverse complement), contains a partial C-region, and is 325 nucleotides in length. Read 2 contains the 5’RACE template switch site with a 17 nucleotide UMI barcode preceding it, and is 275 nucleotides in length.
+The sequences were amplified specific primers  1. AbSeq R1 Human IG Primers.fasta , 2. AbSeq R2 TS.fasta 3. AbSeq Human IG InternalCRegion.fasta.
+The generated libraries were then sequenced with Illumins MiSeq 325+275. 
 
 
-<u>Input files:</u>
 
-1. The read can downloaded from the NCBI Sequence Read Archive under BioProject accession ID: PRJNA248475 or downloaded first 25,000 sequences of sample HD09_N_AB8KB (accession: SRR4026043) using fastq-dump from the SRA Toolkit
-2. The primers sequences available at the table below.
+Each read was sequenced from one end of the target cDNA, so that the togather the two reads cover the entire the full variable region of the Ig heavy chain. The sequencing used an uneven number of cycles for the two reads, with a 2x300 kit. The V(D)J reading frame progressed from the start of read 2 to the start of read 1. Read 1 was in the reverse complement orientation, had a partial C-region, and was 325 nucleotides long. Read 2 was 275 nucleotides long, containing the 5’RACE template switch site with a 17-nucleotide UMI barcode preceding it.
 
-<u>Output files:</u>
 
-1. sample_collapse-unique.fastq
-2. sample_atleast-2.fastq
-3. log and log tab file for each step.
+Input files:
 
-<u>Sequence processing:</u>
+1. Two fastq file of paired-end sequencing
+2. primer files
+3. Assemble pairs reference file
+
+To test the pipeline:
+
+We recommend to test the pipeline using a small example from the original reads that can download using the fastq-dump command.
+
+```bash
+fastq-dump --split-files -X 25000 SRR4026043
+```
+
+And upload directly to dolphinnext. 
+
+
+Output files:
+
+1. {sampleName}_collapse-unique.fastq
+2. {sampleName}_atleast-2.fastq
+3. log tab file for each steps
+4. report for some of the steps
+
+
+Pipeline container:
+
+* Docker: immcantation/suite:4.3.0
+
+
+Sequence processing steps:
 
 * Quality control, UMI annotation and primer masking
-
 	1. FilterSeq quality
 	2. MaskPrimer score
-* Generation of UMI consensus sequences
 
+	
+* Generation of UMI consensus sequences
 	3. PairSeq
 	4. BuildConsensus
-* Paired-end assembly of UMI consensus sequences
 
+
+* Paired-end assembly of UMI consensus sequences
 	5. PairSeq	
 	6. AssemblePairs sequential 
-* Deduplication and filtering
 
+	
+* Deduplication and filtering
 	7. MaskPrimer align
 	8. ParseHeaders collapse
 	9. CollapseSeq
 	10. SplitSeq group
 
 
+Primers used:
 
 
-**AbSeq R1 Human IG Primers**
+* [AbSeq R1 Human IG Primers](https://bitbucket.org/kleinstein/presto/src/master/examples/VanderHeiden2017/AbSeq_R1_Human_IG_Primers.fasta)
 
-| Header     | Primer |
-| ----------- | ----------- |
-| Human-IGHM   |	GAATTCTCACAGGAGACGAGG      |
-| Human-IGHD   |	TGTCTGCACCCTGATATGATGG     |
-| Human-IGHA   |	GGGTGCTGYMGAGGCTCA  	   |
-| Human-IGHE   |	TTGCAGCAGCGGGTCAAGG 	   |
-| Human-IGHG   |	CCAGGGGGAAGACSGATG  	   |
-| Human-IGK    |	GACAGATGGTGCAGCCACAG       |
-| Human-IGL    |	AGGGYGGGAACAGAGTGAC        |
+* [AbSeq R2 TS](https://bitbucket.org/kleinstein/presto/src/master/examples/VanderHeiden2017/AbSeq_R2_TS.fasta)
 
+* [AbSeq Human IG InternalCRegion](https://bitbucket.org/kleinstein/presto/src/master/examples/VanderHeiden2017/AbSeq_Human_IG_InternalCRegion.fasta)
 
+Reference used:
 
-**AbSeq R2 TS**
-
-| Header     | Primer |
-| ----------- | ----------- |
-| TS-shift0   |	TACGGG      |
-| TS-shift1   |	ATACGGG     |
-| TS-shift2   |	TCTACGGG    |
-| TS-shift3   |	CGATACGGG   |
-| TS-shift4   |	GATCTACGGG  |
-
-
-
-
-
-**AbSeq Human IG InternalCRegion**
-
-| Header     | Primer |
-| ----------- | ----------- |
-| Human-IGHA      |	GGCTGGTCGGGGATGC       |
-| Human-IGHD      |	GAGCCTTGGTGGGTGC       |
-| Human-IGHE      |	GGCTCTGTGTGGAGGC  	   |
-| Human-IGHG      |	GGCCCTTGGTGGARGC 	   |
-| Human-IGHM      |	GGGCGGATGCACTCCC  	   |
-| Human-IGKC      |	TTCGTTTRATHTCCAS       |
-| Human-IGLC-1    |	TGGGGTTGGCCTTGGG       |
-| Human-IGLC-2    |	AGGGGGCAGCCTTGGG  	   |
-| Human-IGLC-3    |	YRGCCTTGGGCTGACC       |
-| Human-IGLC-4    |	GCTGCCAAACATGTGC       |
-
-
-
-
+* [IMGT_Human_IG_V](https://bitbucket.org/kleinstein/presto/src/master/examples/VanderHeiden2017/IMGT_Human_IG_V.fasta)
